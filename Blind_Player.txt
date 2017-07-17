@@ -1,0 +1,94 @@
+@name Blind Player
+@inputs 
+@outputs 
+@persist Player:entity AP:array On All P CC A
+@trigger 
+
+interval(20)
+entity():setAlpha(0)
+
+findByClass("player")
+AP = findToArray()
+OP = players()
+P = 0
+
+if(first()){
+    hint("made by paton",5)
+}
+
+if(changed(owner():keyAttack2() & owner():aimEntity():isPlayer()) & owner():keyAttack2() & owner():aimEntity():isPlayer())
+{
+    Player =  owner():aimEntity()
+    hint("Target : "+Player:name(),1)
+}
+
+if(changed(owner():keyPressed("R")) & owner():keyPressed("R")){All++}
+if(All > 1){All = 0}
+if(All){
+    for(I = 1,AP:count()){
+        P++
+        holoCreate(I)
+        holoMaterial(I,"modeldebug/debugwhite")
+        holoScale(I,vec(-5,-5,-5))
+        holoVisible(I,owner(),0)
+        if(P > AP:count()){P = 1}
+        E = AP:entity(P)
+        holoPos(I,E:pos()+vec(0,0,50))
+        holoAng(I,E:attachmentAng("eyes"))
+        holoParentAttachment(I,E,"eyes")
+        holoShadow(I,0)
+        holoColor(I,hsv2rgb(0,0,0))
+    }
+    if(changed(owner():keyPressed("R")) & owner():keyPressed("R")){
+        hint("Blind All",1)
+    }
+}
+
+if(!All & !On){
+    holoDeleteAll()
+    if(changed(owner():keyPressed("R")) & owner():keyPressed("R")){
+        hint("Blind Off",1)
+    }
+}
+
+if(changed(owner():keyPressed("E")) & owner():keyPressed("E")){On++}
+if(On > 1){On = 0}
+if(On){
+    holoCreate(0,Player:pos()+vec(0,0,50),vec(-5,-5,-5))
+    holoAng(0,Player:attachmentAng("eyes"))
+    holoMaterial(0,"modeldebug/debugwhite")
+    holoColor(0,hsv2rgb(0,0,0))
+    holoParentAttachment(0,Player,"eyes")
+    holoVisible(0,OP,0)
+    holoVisible(0,Player,1)
+    holoShadow(0,0)
+    if(changed(owner():keyPressed("E")) & owner():keyPressed("E")){
+        hint("On",1)
+    }
+}
+
+if(!On){
+    holoDelete(0)
+    if(changed(owner():keyPressed("E")) & owner():keyPressed("E")){
+        hint("Off",1)
+    }
+}
+
+#[if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){CC++}
+if(CC > 1){CC = 0}
+if(CC){
+    A++
+    if(A == 360){A--}
+    if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){
+        hint("color on",1)
+    }
+}
+if(!CC){
+    A = 0
+    if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){
+        hint("color off",1)
+    }
+}]#
+
+if(owner():keyPressed("X")){Player = owner()}
+
