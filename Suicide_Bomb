@@ -1,0 +1,31 @@
+@name Suicide Bomb
+@inputs Bomb:entity
+@outputs Explode
+@persist Sound
+@trigger 
+
+runOnTick(1)
+
+if(first()){hint("made by paton",3)}
+
+M2 = owner():keyAttack2()
+if(changed(M2) & M2){
+    timer("boom",2500)
+    owner():soundPlay(0,0,"siege/jihad.wav")
+}
+else{
+    Explode = 0
+}
+
+Bomb:setAng(ang(0,0,0))
+Bomb:setPos(owner():pos())
+Bomb:setAlpha(0)
+
+if(Bomb){
+    entity():setAlpha(0)
+}
+
+if(clk("boom")){
+    Explode = 1
+    soundStop(0)
+}
