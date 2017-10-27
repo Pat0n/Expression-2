@@ -1,0 +1,337 @@
+@name cam drone
+@inputs Pod:wirelink Cam:wirelink Bomb:entity
+@outputs Explode
+@persist A B GunSec InfRed CamTog Aim S Ranger:ranger CamPos:vector [Drive Target P Bullet]:entity Spd
+@model models/hunter/blocks/cube025x025x025.mdl
+
+interval(50)
+runOnChat(1)
+   
+E = entity()
+E:setAlpha(0)
+Drive = Pod["Entity",entity]:driver()
+Ranger = rangerOffset(CamPos,CamPos+((vec(50000,0,0)):rotate(Drive:eyeAngles())))
+   
+E:applyForce(E:forward()*E:mass()*Spd*(Pod["W",number]-Pod["S",number]))
+E:applyForce(E:up()*E:mass()*Spd*(Pod["Space",number]-Drive:keyPressed("LCONTROL")))
+E:applyForce(E:right()*E:mass()*Spd*(Pod["D",number]-Pod["A",number]))
+E:applyForce(-E:vel()*E:mass()*0.3)
+E:applyTorque((100*E:toLocal(rotationVector(quat((Drive:eyeAngles()))/quat(E:angles()))+E:pos())-25*E:angVelVector())*E:inertia())
+
+if(changed(Pod:entity():driver())){
+    Cam["Parent",entity] = E
+    Cam["Position",vector] = CamPos
+}
+
+if(changed(Drive:keyPressed("LALT"))&Drive:keyPressed("LALT")){CamTog++}
+if(CamTog > 1){CamTog = 0}
+if(!CamTog){
+    CamPos = E:pos()+E:forward()*-50+E:up()*30
+    Cam["Position",vector] = CamPos
+}
+if(CamTog){
+    CamPos = E:pos()+E:forward()*25+E:up()*-3
+    Cam["Position",vector] = CamPos
+}
+   
+
+Cam["Activated",number] = Pod["Active",number]
+Cam["Angle",angle] = Pod["Entity",entity]:driver():eyeAngles()
+   
+
+if(changed(Pod["R",number])&Pod["R",number]){InfRed++}
+if(InfRed > 1){InfRed = 0}
+Cam["FLIR",number] = InfRed
+
+if(changed(Pod["Shift",number])&Pod["Shift",number]){S++}
+if(S > 1){S = 0}
+if(!S){
+    Spd = 100
+}
+if(S){
+    Spd = 400
+}
+
+GunSec++
+
+if(Pod["Mouse1",number]&changed(int(GunSec/5))){
+    Bomb:setPos(Ranger:pos())
+    Explode = 1
+}
+else{Explode = 0}
+
+if(changed(Pod["Mouse2",number])&Pod["Mouse2",number]){Aim++}
+if(Aim > 1){Aim = 0}
+if(!Aim){
+    holoDelete(33)
+    holoColor(12,vec(50,50,200))
+    holoColor(17,vec(50,50,200))
+}
+if(Aim){
+    holoCreate(33)
+    holoColor(12,vec(200,50,50))
+    holoColor(17,vec(200,50,50))
+}
+holoPos(33,Ranger:pos())
+holoModel(33,"hq_sphere")
+holoColor(33,vec(255,30,30),150)
+Bomb:setAlpha(0)
+
+if(clk("stop")){soundStop(0)}
+
+LastSaid=owner():lastSaid():explode(" ")
+
+if (chatClk(owner())&LastSaid[1,string]=="!t"){
+    Target=findPlayerByName(LastSaid[2,string])
+    E:setPos(Target:pos()+vec(0,0,100))
+    hideChat(1)
+}
+
+holoCreate(43,Ranger:pos(),vec(3,3,3),ang(0,0,0),vec(0,0,0),"hq_sphere")
+holoAlpha(43,0)
+
+R = rangerOffset(10,holoEntity(43):pos(),holoEntity(43):up())
+if(changed(R:hit()) & R:hit()){
+    findByClass("player")
+    findSortByDistance(holoEntity(43):boxCenterW())
+    P = find()
+    if(P:isPlayer() & changed(P)){
+        hint(""+P:name(),5)
+    }
+}
+
+if(first()){
+    hint("made by paton",3)
+    A++
+    E:propGravity(0)
+    #E:soundPlay(1,0,"hl1/ambience/labdrone2.wav")
+    E:soundPlay(1,0,"vehicles/apc/apc_idle1.wav")
+    
+    #[holoCreate(1,E:pos()+vec(0,0,0),vec(3,3,3),ang(0,0,0),vec(255,255,255),"hq_sphere")
+    holoCreate(29,E:pos()+vec(0,0,0),vec(-3.1,-3.1,-3.1),ang(0,0,0),vec(0,0,0),"hq_sphere")
+    holoCreate(2,E:pos()+vec(0,0,0),vec(3,3,3),ang(0,0,0),vec(0,0,0),"hq_sphere")
+    holoCreate(3,E:pos()+vec(0,0,0),vec(1,3,3),ang(0,0,0),vec(255,30,30),"hq_sphere")
+    holoCreate(4,E:pos()+vec(6,0,0),vec(1.3,1.3,1.3),ang(90,0,0),vec(0,0,0),"hq_torus")
+    holoCreate(5,E:pos()+vec(1,0,0),vec(3,3,3),ang(90,0,0),vec(255,255,255),"hq_torus")
+    holoCreate(30,E:pos()+vec(7,0,0),vec(2,2,2),ang(90,0,0),vec(255,30,30),"hq_torus_thin")
+    holoCreate(31,E:pos()+vec(7,0,0),vec(-2.1,-2.1,-2.1),ang(90,0,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(32,E:pos()+vec(7,0,0),vec(-1.9,-1.9,-1.9),ang(90,0,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(28,E:pos()+vec(1,0,0),vec(-3.1,-3.1,-3.1),ang(90,0,0),vec(0,0,0),"hq_torus")
+    holoCreate(6,E:pos()+vec(5,0,0),vec(4,4,4),ang(90,0,0),vec(255,255,255),"hq_torus_thin")
+    holoCreate(7,E:pos()+vec(-4,0,0),vec(3,3,3),ang(90,0,0),vec(0,0,0),"hq_torus_thin")
+    
+    holoCreate(8,E:pos()+vec(-5,0,30),vec(0.3,2,3),ang(140,0,0),vec(255,255,255),"hq_sphere")
+    holoCreate(25,E:pos()+vec(-5,0,30),vec(-0.4,-2.1,-3.1),ang(140,0,0),vec(255,30,30),"hq_sphere")
+    holoCreate(9,E:pos()+vec(-7,25,-17),vec(0.3,3,2),ang(20,35,-30),vec(255,255,255),"hq_sphere")
+    holoCreate(26,E:pos()+vec(-7,25,-17),vec(-0.4,-3.1,-2.1),ang(20,35,-30),vec(255,30,30),"hq_sphere")
+    holoCreate(10,E:pos()+vec(-7,-25,-17),vec(0.3,3,2),ang(20,-35,30),vec(255,255,255),"hq_sphere")
+    holoCreate(27,E:pos()+vec(-7,-25,-17),vec(-0.4,-3.1,-2.1),ang(20,-35,30),vec(255,30,30),"hq_sphere")
+    
+    holoCreate(11,E:pos()+vec(0,1,0),vec(2.7,1.1,3),ang(0,90,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(12,E:pos()+vec(0,-1,0),vec(2.7,1.1,3),ang(0,270,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(13,E:pos()+vec(0,0,1),vec(2.7,1.1,3),ang(90,90,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(14,E:pos()+vec(0,0,-1),vec(2.7,1.1,3),ang(270,270,0),vec(0,0,0),"hq_torus_thin")
+    holoCreate(15,E:pos()+vec(-1.9,0.8,-1),vec(2.7,1.1,2),ang(240,240,20),vec(0,0,0),"hq_torus_thin")
+    holoCreate(16,E:pos()+vec(-4.8,1,-1),vec(2.7,1.1,2),ang(210,230,20),vec(0,0,0),"hq_torus_thin")
+    holoCreate(17,E:pos()+vec(-3.8,-1,-1),vec(2.7,1.1,2),ang(160,240,-10),vec(0,0,0),"hq_torus_thin")
+    holoCreate(18,E:pos()+vec(-3.3,-1,0),vec(2.7,1.1,2),ang(130,230,-30),vec(0,0,0),"hq_torus_thin")
+    holoCreate(19,E:pos()+vec(-1.6,-2.5,-2.6),vec(2,1.1,2),ang(60,320,40),vec(0,0,0),"hq_torus_thin")
+    holoCreate(20,E:pos()+vec(-2.1,-2.4,-2.6),vec(2,1.1,2),ang(25,300,20),vec(0,0,0),"hq_torus_thin")
+    holoCreate(21,E:pos()+vec(-1,-2.3,2.6),vec(2,1.1,2),ang(300,300,-25),vec(0,0,0),"hq_torus_thin")
+    holoCreate(22,E:pos()+vec(-2.2,-2.7,2.6),vec(2,1.1,2),ang(340,300,-25),vec(0,0,0),"hq_torus_thin")
+    holoCreate(23,E:pos()+vec(1.3,0,0),vec(1,1.5,1),ang(0,0,0),vec(0,0,0),"hq_sphere")
+    holoCreate(24,E:pos()+vec(6,0,0),vec(0.7,0.5,0.5),ang(90,45,0),vec(255,30,30),"hq_dome")
+    
+    holoMaterial(1,"models/shiny")
+    holoMaterial(2,"models/dog/eyeglass")
+    holoMaterial(3,"models/shiny")
+    holoMaterial(4,"models/shiny")
+    holoMaterial(5,"models/shiny")
+    holoMaterial(6,"models/shiny")
+    holoMaterial(7,"models/shiny")
+    holoMaterial(8,"models/shiny")
+    holoMaterial(9,"models/shiny")
+    holoMaterial(10,"models/shiny")
+    holoMaterial(11,"models/shiny")
+    holoMaterial(12,"models/shiny")
+    holoMaterial(13,"models/shiny")
+    holoMaterial(14,"models/shiny")
+    holoMaterial(15,"models/shiny")
+    holoMaterial(16,"models/shiny")
+    holoMaterial(17,"models/shiny")
+    holoMaterial(18,"models/shiny")
+    holoMaterial(19,"models/shiny")
+    holoMaterial(20,"models/shiny")
+    holoMaterial(21,"models/shiny")
+    holoMaterial(22,"models/shiny")
+    holoMaterial(23,"models/shiny")
+    holoMaterial(24,"models/shiny")
+    holoMaterial(25,"models/shiny")
+    holoMaterial(26,"models/shiny")
+    holoMaterial(27,"models/shiny")
+    holoMaterial(28,"models/shiny")
+    holoMaterial(29,"models/shiny")
+    holoMaterial(30,"models/shiny")
+    holoMaterial(31,"models/shiny")
+    holoMaterial(32,"models/shiny")
+    
+    holoParent(1,E)
+    holoParent(2,E)
+    holoParent(3,E)
+    holoParent(4,E)
+    holoParent(5,E)
+    holoParent(6,E)
+    holoParent(7,E)
+    holoParent(8,E)
+    holoParent(9,E)
+    holoParent(10,E)
+    holoParent(11,E)
+    holoParent(12,E)
+    holoParent(13,E)
+    holoParent(14,E)
+    holoParent(15,E)
+    holoParent(16,E)
+    holoParent(17,E)
+    holoParent(18,E)
+    holoParent(19,E)
+    holoParent(20,E)
+    holoParent(21,E)
+    holoParent(22,E)
+    holoParent(23,E)
+    holoParent(24,E)
+    holoParent(25,E)
+    holoParent(26,E)
+    holoParent(27,E)
+    holoParent(28,E)
+    holoParent(29,E)
+    holoParent(30,E)
+    holoParent(31,E)
+    holoParent(32,E)
+    
+    holoClipEnabled(1,1)
+    holoClipEnabled(11,1)
+    holoClipEnabled(12,1)
+    holoClipEnabled(13,1)
+    holoClipEnabled(14,1)
+    holoClipEnabled(15,1)
+    holoClipEnabled(16,1)
+    holoClipEnabled(17,1)
+    holoClipEnabled(18,1)
+    holoClipEnabled(19,1)
+    holoClipEnabled(20,1)
+    holoClipEnabled(21,1)
+    holoClipEnabled(22,1)
+    holoClipEnabled(24,1)
+    holoClipEnabled(29,1)
+    holoClip(1,vec(0,0,0),vec(-1,0,0),0)
+    holoClip(11,vec(0,0,0),vec(1,1,1),0)
+    holoClip(12,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(13,vec(0,0,0),vec(-1,1,1),0)
+    holoClip(14,vec(0,0,0),vec(-1,-1,1),0)
+    holoClip(15,vec(0,0,0),vec(1,1,-1),0)
+    holoClip(16,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(17,vec(0,0,0),vec(1,1,1),0)
+    holoClip(18,vec(0,0,0),vec(1,1,1),0)
+    holoClip(19,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(20,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(21,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(22,vec(0,0,0),vec(1,-1,1),0)
+    holoClip(24,vec(0,0,0),vec(0,-1,0),0)
+    holoClip(29,vec(0,0,0),vec(-1,0,0),0)]#
+    
+    holoCreate(1,E:pos()+vec(0,0,4.8),vec(1.4,0.9,0.9),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(2,E:pos()+vec(-1.2,0,4.8),vec(0.6,1.8,0.1),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(3,E:pos()+vec(-1.2,9.6,4.8),vec(0.4,0.4,1.2),ang(90,0,0),vec(50,50,50),"cylinder")
+    holoCreate(4,E:pos()+vec(-1.2,-9.6,4.8),vec(0.4,0.4,1.2),ang(90,0,0),vec(50,50,50),"cylinder")
+    holoCreate(5,E:pos()+vec(-1.2,9.6,4.8),vec(0.3,0.3,1.4),ang(90,0,0),vec(100,100,100),"cylinder")
+    holoCreate(6,E:pos()+vec(-1.2,-9.6,4.8),vec(0.3,0.3,1.4),ang(90,0,0),vec(100,100,100),"cylinder")
+    holoCreate(7,E:pos()+vec(0,0,4.8),vec(1.2,1.1,0.6),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(8,E:pos()+vec(8.4,4.2,4.8),vec(0.4,0.6,0.2),ang(0,90,90),vec(50,50,50),"prism")
+    holoCreate(9,E:pos()+vec(8.4,-4.2,4.8),vec(0.4,0.6,0.2),ang(0,90,90),vec(50,50,50),"prism")
+    holoCreate(10,E:pos()+vec(-8.4,4.2,4.8),vec(0.4,0.6,0.2),ang(0,-90,90),vec(50,50,50),"prism")
+    holoCreate(11,E:pos()+vec(-8.4,-4.2,4.8),vec(0.4,0.6,0.2),ang(0,-90,90),vec(50,50,50),"prism")
+    
+    holoCreate(12,E:pos()+vec(18.4,0,7.5),vec(1,0.6,0.35),ang(0,0,0),vec(50,50,200),"prism")
+    holoCreate(13,E:pos()+vec(18.4,0,2.7),vec(1,0.6,0.45),ang(180,0,0),vec(50,50,50),"prism")
+
+
+    holoCreate(14,E:pos()+vec(22.15,0,1.85),vec(0.668,0.6,0.19),ang(138,0,0),vec(50,50,50),"prism") 
+    holoCreate(15,E:pos()+vec(8.4,0,7.5),vec(1.8,0.9,0.45),ang(0,0,0),vec(50,50,50),"prism")
+    holoCreate(16,E:pos()+vec(8.4,0,1.2),vec(1.8,0.9,0.3),ang(180,0,0),vec(50,50,50),"prism")
+    holoCreate(17,E:pos()+vec(7.6,0,7.5),vec(1.8,0.6,0.35),ang(0,0,0),vec(50,50,200),"cube")
+    holoCreate(18,E:pos()+vec(7.6,0,2.4),vec(1.8,0.6,0.4),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(19,E:pos()+vec(13.8,0,3.9),vec(0.9,0.9,0.15),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(20,E:pos()+vec(11.8,0,9.9),vec(0.7,0.6,0.05),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(21,E:pos()+vec(17.2,0,9.6),vec(0.1,0.598,0.2),ang(90,0,0),vec(50,50,50),"prism")
+    
+    holoCreate(22,E:pos()+vec(-28.8,0,7.5),vec(0.45,0.8,2.4),ang(-90,0,0),vec(50,50,50),"pyramid")
+    holoCreate(23,E:pos()+vec(-11.4,0,4.8),vec(0.9,0.9,0.5),ang(-90,0,0),vec(50,50,50),"prism")
+    holoCreate(24,E:pos()+vec(-11.4,0,7.5),vec(0.5,0.8,0.45),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(25,E:pos()+vec(-28.8,0,8.85),vec(2.4,0.4,0.225),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(26,E:pos()+vec(-40.8,0,9.9),vec(0.4,1.2,0.05),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(27,E:pos()+vec(-40.8,7.2,9.9),vec(0.4,0.6,0.05),ang(0,0,90),vec(50,50,50),"cube")
+    
+    holoCreate(29,E:pos()+vec(-1.2,0,10.8),vec(1.2,0.7,0.2),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(30,E:pos()+vec(-1.2,0,12.4),vec(0.9,0.4,0.1),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(31,E:pos()+vec(6.9,0,10.2),vec(0.3,0.7,0.15),ang(90,0,0),vec(50,50,50),"prism")
+    holoCreate(32,E:pos()+vec(-9.6,0,10.2),vec(0.3,0.7,0.2),ang(-90,0,0),vec(50,50,50),"prism")
+    holoCreate(33,E:pos()+vec(4.8,0,11.8),vec(0.2,0.4,0.1),ang(90,0,0),vec(50,50,50),"prism")
+    holoCreate(34,E:pos()+vec(-7.2,0,11.8),vec(0.2,0.4,0.1),ang(-90,0,0),vec(50,50,50),"prism")
+    
+    holoCreate(35,E:pos()+vec(-1.2,0,11.2),vec(0.7,2.8,0.05),ang(0,0,0),vec(50,50,50),"cube")
+    holoCreate(36,E:pos()+vec(-1.2,23.1,10.8),vec(1.8,1.8,0.6),ang(0,0,0),vec(50,50,50),"torus3")
+    holoCreate(37,E:pos()+vec(-1.2,-23.1,10.8),vec(1.8,1.8,0.6),ang(0,0,0),vec(50,50,50),"torus3")
+    holoCreate(38,E:pos()+vec(-1.2,0,11.2),vec(0.3,3,0.1),ang(0,0,0),vec(50,50,50),"cube")
+    
+    holoCreate(39,E:pos()+vec(-1.2,16.6,11.2),vec(1.2,1.2,0.12),ang(0,0,0),vec(50,50,50),"cylinder")
+    
+    holoCreate(40,E:pos()+vec(-1.2,-16.6,11.2),vec(1.2,1.2,0.12),ang(0,0,0),vec(50,50,50),"cylinder")
+    holoCreate(41,E:pos()+vec(-1.2,16.6,11.2),vec(0.4,0.4,0.18),ang(0,0,0),vec(50,50,50),"cylinder")
+    holoCreate(42,E:pos()+vec(-1.2,-16.6,11.2),vec(0.4,0.4,0.18),ang(0,0,0),vec(50,50,50),"cylinder")
+
+    holoParent(1,E)
+    holoParent(2,E)
+    holoParent(3,E)
+    holoParent(4,E)
+    holoParent(5,E)
+    holoParent(6,E)
+    holoParent(7,E)
+    holoParent(8,E)
+    holoParent(9,E)
+    holoParent(10,E)
+    holoParent(11,E)
+    holoParent(12,E)
+    holoParent(13,E)
+    holoParent(14,E)
+    holoParent(15,E)
+    holoParent(16,E)
+    holoParent(17,E)
+    holoParent(18,E)
+    holoParent(19,E)
+    holoParent(20,E)
+    holoParent(21,E)
+    holoParent(22,E)
+    holoParent(23,E)
+    holoParent(24,E)
+    holoParent(25,E)
+    holoParent(26,E)
+    holoParent(27,E)
+    holoParent(28,E)
+    holoParent(29,E)
+    holoParent(30,E)
+    holoParent(31,E)
+    holoParent(32,E)
+    holoParent(33,E)
+    holoParent(34,E)
+    holoParent(35,E)
+    holoParent(36,E)
+    holoParent(37,E)
+    holoParent(38,E)
+    holoParent(39,E)
+    holoParent(40,E)
+    holoParent(41,E)
+    holoParent(42,E)
+}
+
+if(duped()){selfDestructAll()}
+
