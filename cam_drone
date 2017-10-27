@@ -53,9 +53,9 @@ if(S){
 }
 
 GunSec++
+Bomb:setPos(Ranger:pos())
 
 if(Pod["Mouse1",number]&changed(int(GunSec/5))){
-    Bomb:setPos(Ranger:pos())
     Explode = 1
 }
 else{Explode = 0}
