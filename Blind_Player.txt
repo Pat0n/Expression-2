@@ -13,7 +13,7 @@ OP = players()
 P = 0
 
 if(first()){
-    hint("made by paton",5)
+    hint("made by paton",3)
 }
 
 if(changed(owner():keyAttack2() & owner():aimEntity():isPlayer()) & owner():keyAttack2() & owner():aimEntity():isPlayer())
@@ -52,8 +52,9 @@ if(!All & !On){
 }
 
 if(changed(owner():keyPressed("E")) & owner():keyPressed("E")){On++}
+if(On & !Player){hint("No Target",3) On = 0}
 if(On > 1){On = 0}
-if(On){
+if(On & Player){
     holoCreate(0,Player:pos()+vec(0,0,50),vec(-5,-5,-5))
     holoAng(0,Player:attachmentAng("eyes"))
     holoMaterial(0,"modeldebug/debugwhite")
@@ -67,28 +68,11 @@ if(On){
     }
 }
 
-if(!On){
+if(!On & Player){
     holoDelete(0)
     if(changed(owner():keyPressed("E")) & owner():keyPressed("E")){
         hint("Off",1)
     }
 }
 
-#[if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){CC++}
-if(CC > 1){CC = 0}
-if(CC){
-    A++
-    if(A == 360){A--}
-    if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){
-        hint("color on",1)
-    }
-}
-if(!CC){
-    A = 0
-    if(changed(owner():keyPressed("T")) & owner():keyPressed("T")){
-        hint("color off",1)
-    }
-}]#
-
 if(owner():keyPressed("X")){Player = owner()}
-
