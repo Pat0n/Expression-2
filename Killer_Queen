@@ -1,0 +1,38 @@
+@name Killer_Queen
+@inputs Bomb:entity
+@outputs Explode
+@persist Target:entity
+@trigger 
+
+runOnTick(1)
+runOnChat(1)
+
+if(first()){hint("made by Paton",3)}
+
+O = owner()
+M2 = O:keyAttack2()
+IsPlayer = O:aimEntity():isPlayer()
+LastSaid = O:lastSaid():explode(" ")
+Bomb:setAlpha(0)
+Bomb:propNotSolid(1)
+Bomb:setPos(Target:pos()+vec(0,0,50))
+
+if (chatClk(O) & LastSaid[1,string]=="!"){
+    Target = findPlayerByName(LastSaid[2,string])
+    hint("Target : "+Target:name(),3)
+    hideChat(1)
+}
+
+elseif(changed(M2 & IsPlayer) & M2 & IsPlayer)
+{
+    Target =  owner():aimEntity()
+    hint("Target : "+Target:name(),3)
+}
+
+if(Target & changed(O:keyPressed("E")) & O:keyPressed("E")){
+    Explode = 1
+    hint("Boom!",1)
+}
+else{
+    Explode = 0
+}
