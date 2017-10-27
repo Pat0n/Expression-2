@@ -1,0 +1,57 @@
+@name View-Controlled Missile
+@inputs Chair:entity Cam:wirelink Bomb:entity
+@outputs Explode
+@persist [E Driver]:entity On
+
+runOnTick(1)
+
+if(first()){hint("made by paton",3)}
+
+Driver = Chair:driver()
+M1 = Driver:keyAttack1()
+M2 = Driver:keyAttack2()
+Bomb:setAlpha(0)
+Bomb:setPos(E:toWorld(vec(45,0,0)))
+Bomb:propNotSolid(1)
+
+holoModel(1,"models/props_phx/ww2bomb.mdl")
+holoParent(1,E)
+holoPos(1,E:toWorld(vec(0,0,0)))
+holoAng(1,E:toWorld(ang(0,0,0)))
+holoScale(1,vec(1.2,1.2,1.2))
+holoParent(1,2)
+holoPos(2,E:toWorld(vec(0,0,0)))
+
+if(changed(M1) & M1 & !On){
+    holoCreate(1)
+    holoCreate(2):setAlpha(0)
+    E:propBreak()
+    E = propSpawn("models/hunter/blocks/cube025x025x025.mdl",Chair:pos()+vec(0,0,200),Driver:eyeAngles(),0)
+    E:soundPlay(0,0,"weapons/rpg/rocket1.wav")
+    E:setAlpha(0)
+    E:propNotSolid(1)
+    holoEntity(2):setTrails(20,20,0.4,"trails/smoke",vec(150,150,150),255)
+    E:propGravity(0)
+    E:setMass(500)
+    On = 1
+}
+
+R = rangerOffset(10,holoEntity(1):pos(),holoEntity(1):forward())
+
+if(E:pos() != vec(0,0,0)){
+    if(changed(M2) & M2 | R:hit()){
+        E:propBreak()
+        holoDeleteAll(1)
+        Explode = 1
+        On = 0
+    }
+    else{Explode = 0}
+        
+        E:applyForce(E:forward()*E:mass()*500)
+        E:applyForce(-E:vel()*E:mass()*0.25)
+        E:applyTorque((100*E:toLocal(rotationVector(quat((Driver:eyeAngles()))/quat(E:angles()))+E:pos())-25*E:angVelVector())*E:inertia())
+        Cam["Activated",number] = 1
+        Cam["Position",vector] = E:pos()+vec(-110,0,50):rotate(E:angles())
+        Cam["Angle",angle] = E:angles()
+}
+else{Cam["Activated",number] = 0}
